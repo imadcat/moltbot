@@ -79,6 +79,51 @@ export function ensureMemoryIndexSchema(params: {
   params.db.exec(`CREATE INDEX IF NOT EXISTS idx_chunks_path ON chunks(path);`);
   params.db.exec(`CREATE INDEX IF NOT EXISTS idx_chunks_source ON chunks(source);`);
 
+  // Entity and relationship tables for Schema.org aligned knowledge graph
+  params.db.exec(`
+    CREATE TABLE IF NOT EXISTS entities (
+      id TEXT PRIMARY KEY,
+      type TEXT NOT NULL,
+      name TEXT NOT NULL,
+      description TEXT,
+      properties TEXT,
+      source_session_file TEXT,
+      source_chunk_id TEXT,
+      extracted_at INTEGER NOT NULL,
+      confidence REAL,
+      FOREIGN KEY (source_chunk_id) REFERENCES chunks(id) ON DELETE CASCADE
+    );
+  `);
+  params.db.exec(`CREATE INDEX IF NOT EXISTS idx_entities_type ON entities(type);`);
+  params.db.exec(`CREATE INDEX IF NOT EXISTS idx_entities_name ON entities(name);`);
+  params.db.exec(
+    `CREATE INDEX IF NOT EXISTS idx_entities_source_chunk ON entities(source_chunk_id);`,
+  );
+
+  params.db.exec(`
+    CREATE TABLE IF NOT EXISTS relationships (
+      id TEXT PRIMARY KEY,
+      type TEXT NOT NULL,
+      source_entity_id TEXT NOT NULL,
+      target_entity_id TEXT NOT NULL,
+      properties TEXT,
+      source_session_file TEXT,
+      source_chunk_id TEXT,
+      extracted_at INTEGER NOT NULL,
+      confidence REAL,
+      FOREIGN KEY (source_entity_id) REFERENCES entities(id) ON DELETE CASCADE,
+      FOREIGN KEY (target_entity_id) REFERENCES entities(id) ON DELETE CASCADE,
+      FOREIGN KEY (source_chunk_id) REFERENCES chunks(id) ON DELETE CASCADE
+    );
+  `);
+  params.db.exec(`CREATE INDEX IF NOT EXISTS idx_relationships_type ON relationships(type);`);
+  params.db.exec(
+    `CREATE INDEX IF NOT EXISTS idx_relationships_source ON relationships(source_entity_id);`,
+  );
+  params.db.exec(
+    `CREATE INDEX IF NOT EXISTS idx_relationships_target ON relationships(target_entity_id);`,
+  );
+
   return { ftsAvailable, ...(ftsError ? { ftsError } : {}) };
 }
 
