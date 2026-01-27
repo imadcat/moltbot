@@ -1,5 +1,18 @@
 /**
  * Tests for entity extraction and Schema.org alignment
+ * 
+ * NOTE ON TESTING APPROACH:
+ * These tests use MOCK LLM functions with predefined entities/relationships to validate
+ * the extraction mechanism, Schema.org type coverage, and data structure handling.
+ * 
+ * The tests do NOT make real LLM API calls or exhaustively extract every entity from
+ * test documents. This approach ensures:
+ * - Fast, deterministic test execution for CI/CD
+ * - No external API dependencies or costs
+ * - Reproducible test results across environments
+ * 
+ * For production use with real documents, integrate with actual LLM providers
+ * (OpenAI, Gemini, Claude, etc.) for exhaustive entity extraction.
  */
 
 import { describe, expect, it } from "vitest";
@@ -227,8 +240,41 @@ describe("entity-extractor", () => {
     });
 
     it("should extract entities from real-world document (Palantir vs Accenture) - Full PDF", async () => {
+      /**
+       * NOTE: This test demonstrates the entity extraction mechanism using mock LLM data.
+       * 
+       * Test Approach:
+       * - Uses MOCK LLM function with predefined entities/relationships (not exhaustive extraction)
+       * - Source: "test/Palantir vs. Accenture Comparison.pdf" (20 pages, 65k+ characters)
+       * - Extracts 32 representative entities as examples to validate the extraction mechanism
+       * - Tests Schema.org type coverage and relationship modeling
+       * 
+       * What This Test Validates:
+       * ✓ Extraction mechanism works correctly
+       * ✓ Schema.org type validation and alignment
+       * ✓ Entity and relationship data structure
+       * ✓ Property handling and metadata preservation
+       * 
+       * What This Test Does NOT Do:
+       * ✗ Exhaustively extract ALL entities from the 20-page PDF
+       * ✗ Make real LLM API calls (expensive, slow, non-deterministic)
+       * ✗ Extract every person, date, metric, or minor entity mention
+       * 
+       * For Production Use:
+       * To exhaustively extract entities from documents, integrate with a real LLM provider:
+       *   const result = await extractEntitiesFromText(fullDocText, {
+       *     config: { enabled: true },
+       *     llmExtract: async (prompt) => await openai.chat.completions.create(...)
+       *   });
+       * 
+       * This mock approach ensures:
+       * - Fast, deterministic test execution for CI/CD
+       * - No external API dependencies or costs
+       * - Reproducible test results
+       * - Validation of core extraction logic
+       */
+      
       // Full excerpt from "Palantir vs. Accenture Comparison.pdf" in test folder
-      // Contains comprehensive analysis with multiple entities and relationships
       const documentText = `A Tale of Two Titans: A Comparative Analysis of Palantir Technologies and Accenture
 I. Executive Summary
 This report provides an exhaustive comparative analysis of Palantir Technologies and Accenture plc, two firms operating at the nexus of data, technology, and enterprise transformation. While both entities engage with the world's largest government and commercial organizations, their foundational principles, business models, and strategic imperatives are fundamentally divergent. The core thesis of this analysis is that Palantir and Accenture represent two distinct paradigms for value creation in the digital age. Palantir is a mission-driven, product-centric technology company that builds vertically integrated software platforms, deployed via a high-touch, engineering-led service model. Accenture is a people-centric, service-driven professional services behemoth that functions as a technology-agnostic systems integrator, leveraging its immense human capital and a vast ecosystem of partners to deliver large-scale business transformation.
