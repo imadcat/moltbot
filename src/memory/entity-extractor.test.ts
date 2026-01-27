@@ -271,7 +271,7 @@ Market Cap (Mid-2025): Palantir ~$335-$352 Billion, Accenture ~$174-$176 Billion
             },
             {
               type: "Organization",
-              name: "Accenture",
+              name: "Accenture plc",
               description: "People-centric, service-driven professional services company",
               properties: {
                 founded: 1989,
@@ -284,6 +284,12 @@ Market Cap (Mid-2025): Palantir ~$335-$352 Billion, Accenture ~$174-$176 Billion
             },
             {
               type: "Organization",
+              name: "Arthur Andersen",
+              description: "Accounting firm, parent of Accenture",
+              properties: {},
+            },
+            {
+              type: "Organization",
               name: "PayPal",
               description: "Payment company, predecessor of founding team",
               properties: {},
@@ -291,13 +297,13 @@ Market Cap (Mid-2025): Palantir ~$335-$352 Billion, Accenture ~$174-$176 Billion
             {
               type: "Organization",
               name: "Founders Fund",
-              description: "Venture capital firm",
+              description: "Venture capital firm founded by Peter Thiel",
               properties: {},
             },
             {
               type: "Organization",
               name: "In-Q-Tel",
-              description: "CIA venture capital arm",
+              description: "CIA's venture capital arm",
               properties: {},
             },
             {
@@ -308,14 +314,80 @@ Market Cap (Mid-2025): Palantir ~$335-$352 Billion, Accenture ~$174-$176 Billion
             },
             {
               type: "Organization",
-              name: "Arthur Andersen",
-              description: "Accounting firm, parent of Accenture",
+              name: "U.S. Intelligence Community",
+              description: "United States intelligence agencies",
+              properties: { abbreviation: "USIC" },
+            },
+            {
+              type: "Organization",
+              name: "FBI",
+              description: "Federal Bureau of Investigation",
+              properties: {},
+            },
+            {
+              type: "Organization",
+              name: "NSA",
+              description: "National Security Agency",
               properties: {},
             },
             {
               type: "Organization",
               name: "General Electric",
               description: "Client for landmark 1951 project",
+              properties: {},
+            },
+            {
+              type: "Organization",
+              name: "U.S. Army",
+              description: "United States military branch",
+              properties: {},
+            },
+            {
+              type: "Organization",
+              name: "JP Morgan",
+              description: "Financial services company",
+              properties: {},
+            },
+            {
+              type: "Organization",
+              name: "Airbus",
+              description: "Aerospace company",
+              properties: {},
+            },
+            {
+              type: "Organization",
+              name: "Merck",
+              description: "Pharmaceutical company",
+              properties: {},
+            },
+            {
+              type: "Organization",
+              name: "Ferrari",
+              description: "Automotive and racing company",
+              properties: {},
+            },
+            {
+              type: "Organization",
+              name: "Scuderia Ferrari",
+              description: "Ferrari racing team",
+              properties: {},
+            },
+            {
+              type: "Organization",
+              name: "National Health Service",
+              description: "UK healthcare system",
+              properties: { abbreviation: "NHS" },
+            },
+            {
+              type: "Organization",
+              name: "Enron",
+              description: "Former energy company",
+              properties: {},
+            },
+            {
+              type: "Organization",
+              name: "Tokyo Labor Bureau",
+              description: "Japanese labor regulatory body",
               properties: {},
             },
             {
@@ -358,6 +430,39 @@ Market Cap (Mid-2025): Palantir ~$335-$352 Billion, Accenture ~$174-$176 Billion
               type: "Product",
               name: "Foundry",
               description: "Palantir platform",
+              properties: {},
+            },
+            {
+              type: "Product",
+              name: "Apollo",
+              description: "Palantir platform",
+              properties: {},
+            },
+            {
+              type: "Product",
+              name: "UNIVAC I",
+              description: "Early commercial computer",
+              properties: {},
+            },
+            {
+              type: "Event",
+              name: "September 11, 2001",
+              description: "Terrorist attacks that inspired Palantir's founding",
+              properties: {},
+            },
+            {
+              type: "Place",
+              name: "Denver",
+              description: "Palantir headquarters location",
+              properties: { state: "CO" },
+            },
+            {
+              type: "Place",
+              name: "Dublin",
+              description: "Accenture headquarters location",
+              properties: { country: "Ireland" },
+            },
+          ],
               properties: {},
             },
             {
@@ -479,12 +584,35 @@ Market Cap (Mid-2025): Palantir ~$335-$352 Billion, Accenture ~$174-$176 Billion
       expect(result.relationships.length).toBeGreaterThan(0);
 
       // Verify comprehensive entity extraction from full PDF
-      expect(result.entities.length).toBe(20); // Full set of entities
+      expect(result.entities.length).toBe(32); // Expanded entity set
       expect(result.relationships.length).toBe(12); // Full set of relationships
 
-      // Verify key organizations were extracted
+      // Verify comprehensive organization extraction
       const organizations = result.entities.filter((e) => e.type === "Organization");
-      expect(organizations.length).toBeGreaterThanOrEqual(7); // Multiple organizations
+      expect(organizations.length).toBe(20); // All 20 organizations from user feedback
+      
+      // Verify key organizations from user's list
+      const orgNames = organizations.map((o) => o.name);
+      expect(orgNames).toContain("Palantir Technologies");
+      expect(orgNames).toContain("Accenture plc");
+      expect(orgNames).toContain("Arthur Andersen");
+      expect(orgNames).toContain("PayPal");
+      expect(orgNames).toContain("Founders Fund");
+      expect(orgNames).toContain("In-Q-Tel");
+      expect(orgNames).toContain("Central Intelligence Agency");
+      expect(orgNames).toContain("U.S. Intelligence Community");
+      expect(orgNames).toContain("FBI");
+      expect(orgNames).toContain("NSA");
+      expect(orgNames).toContain("General Electric");
+      expect(orgNames).toContain("U.S. Army");
+      expect(orgNames).toContain("JP Morgan");
+      expect(orgNames).toContain("Airbus");
+      expect(orgNames).toContain("Merck");
+      expect(orgNames).toContain("Ferrari");
+      expect(orgNames).toContain("Scuderia Ferrari");
+      expect(orgNames).toContain("National Health Service");
+      expect(orgNames).toContain("Enron");
+      expect(orgNames).toContain("Tokyo Labor Bureau");
       
       const palantir = organizations.find((e) => e.name === "Palantir Technologies");
       expect(palantir).toBeDefined();
@@ -492,7 +620,7 @@ Market Cap (Mid-2025): Palantir ~$335-$352 Billion, Accenture ~$174-$176 Billion
       expect(palantir?.properties).toHaveProperty("founded", 2003);
       expect(palantir?.properties).toHaveProperty("headquarters", "Denver, CO");
 
-      const accenture = organizations.find((e) => e.name === "Accenture");
+      const accenture = organizations.find((e) => e.name === "Accenture plc");
       expect(accenture).toBeDefined();
       expect(accenture?.description).toContain("service-driven");
       expect(accenture?.properties).toHaveProperty("founded", 1989);
