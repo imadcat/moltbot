@@ -226,18 +226,32 @@ describe("entity-extractor", () => {
       expect(result.entities[0]?.sourceChunkId).toBe("chunk-456");
     });
 
-    it("should extract entities from real-world document (Palantir vs Accenture)", async () => {
+    it("should extract entities from real-world document (Palantir vs Accenture) - Full PDF", async () => {
+      // Full excerpt from "Palantir vs. Accenture Comparison.pdf" in test folder
+      // Contains comprehensive analysis with multiple entities and relationships
       const documentText = `A Tale of Two Titans: A Comparative Analysis of Palantir Technologies and Accenture
 I. Executive Summary
 This report provides an exhaustive comparative analysis of Palantir Technologies and Accenture plc, two firms operating at the nexus of data, technology, and enterprise transformation. While both entities engage with the world's largest government and commercial organizations, their foundational principles, business models, and strategic imperatives are fundamentally divergent. The core thesis of this analysis is that Palantir and Accenture represent two distinct paradigms for value creation in the digital age. Palantir is a mission-driven, product-centric technology company that builds vertically integrated software platforms, deployed via a high-touch, engineering-led service model. Accenture is a people-centric, service-driven professional services behemoth that functions as a technology-agnostic systems integrator, leveraging its immense human capital and a vast ecosystem of partners to deliver large-scale business transformation.
 Their origins dictate their strategies: Palantir was born from the national security imperatives of a post-9/11 world, creating a culture focused on solving intractable problems with elite engineering talent. Accenture evolved from the corporate consulting arm of an accounting firm, building a culture centered on process, scale, and client relationship management. This translates into starkly different business models. Palantir's "Acquire, Expand, Scale" model focuses on embedding its proprietary platforms—Gotham, Foundry, and Apollo—as the indispensable operating system for a select group of high-value clients. Accenture's model leverages its nearly 800,000 employees across five service lines to provide end-to-end solutions, from strategy to operations, for thousands of clients globally.
-Financially, this divergence is dramatic. Palantir exhibits the characteristics of a...`;
+Financially, this divergence is dramatic. Palantir exhibits the characteristics of a high-growth technology stock, with rapid revenue acceleration and a market capitalization that far outstrips its current revenue, reflecting investor confidence in its future dominance in the AI platform space. Accenture presents as a mature, blue-chip market leader, with massive revenues and stable profitability, but more modest growth prospects tied to global economic trends. Their relationship has evolved into a complex "co-opetition," where Accenture acts as a crucial channel partner, bringing Palantir's platforms to a wider market, while simultaneously posing a long-term competitive threat as it builds its own AI capabilities.
+
+II. Foundational DNA: A Tale of Two Origins
+Palantir: The Mission-Driven Technologist - Palantir Technologies was born from a sense of national crisis after the September 11, 2001 terrorist attacks. Peter Thiel, a co-founder of PayPal, wondered if pattern-recognition algorithms could be repurposed to trace terrorist money flows. The founding team included PayPal engineer Nathan Gettings, Stanford students Joe Lonsdale and Stephen Cohen. Alex Karp, with a PhD in neoclassical social theory, was appointed CEO. Early backing came from Thiel's Founders Fund and In-Q-Tel, the CIA's venture capital arm.
+
+Accenture: The Corporate Integrator - Accenture's origins trace back to the 1950s as the business and technology consulting division of Arthur Andersen. A landmark 1951 project involved a feasibility study for General Electric to install a UNIVAC I computer. In 1989, the division separated and rebranded as Andersen Consulting. On January 1, 2001, it adopted the name "Accenture."
+
+Table 1: Company Profile
+Founding Year: Palantir 2003, Accenture 1989
+Headquarters: Palantir Denver CO, Accenture Dublin Ireland
+FY2024 Revenue: Palantir $2.87 Billion, Accenture $64.9 Billion
+FY2024 Employees: Palantir 3,936, Accenture 774,000
+Market Cap (Mid-2025): Palantir ~$335-$352 Billion, Accenture ~$174-$176 Billion`;
 
       const config: EntityExtractionConfig = {
         enabled: true,
       };
 
-      // Mock LLM that extracts entities from the Palantir vs Accenture document
+      // Mock LLM that extracts comprehensive entities from the full Palantir vs Accenture document
       const mockLLM = async (_prompt: string) => {
         return JSON.stringify({
           entities: [
@@ -246,9 +260,13 @@ Financially, this divergence is dramatic. Palantir exhibits the characteristics 
               name: "Palantir Technologies",
               description: "Mission-driven, product-centric technology company",
               properties: {
+                founded: 2003,
+                headquarters: "Denver, CO",
                 businessModel: "Acquire, Expand, Scale",
                 platforms: ["Gotham", "Foundry", "Apollo"],
-                origin: "post-9/11 national security",
+                revenue2024: "2.87 Billion",
+                employees2024: 3936,
+                marketCap: "335-352 Billion",
               },
             },
             {
@@ -256,10 +274,79 @@ Financially, this divergence is dramatic. Palantir exhibits the characteristics 
               name: "Accenture",
               description: "People-centric, service-driven professional services company",
               properties: {
-                employees: 800000,
+                founded: 1989,
+                headquarters: "Dublin, Ireland",
+                revenue2024: "64.9 Billion",
+                employees2024: 774000,
+                marketCap: "174-176 Billion",
                 serviceLines: 5,
-                origin: "corporate consulting arm of accounting firm",
               },
+            },
+            {
+              type: "Organization",
+              name: "PayPal",
+              description: "Payment company, predecessor of founding team",
+              properties: {},
+            },
+            {
+              type: "Organization",
+              name: "Founders Fund",
+              description: "Venture capital firm",
+              properties: {},
+            },
+            {
+              type: "Organization",
+              name: "In-Q-Tel",
+              description: "CIA venture capital arm",
+              properties: {},
+            },
+            {
+              type: "Organization",
+              name: "Central Intelligence Agency",
+              description: "U.S. Intelligence agency",
+              properties: { abbreviation: "CIA" },
+            },
+            {
+              type: "Organization",
+              name: "Arthur Andersen",
+              description: "Accounting firm, parent of Accenture",
+              properties: {},
+            },
+            {
+              type: "Organization",
+              name: "General Electric",
+              description: "Client for landmark 1951 project",
+              properties: {},
+            },
+            {
+              type: "Person",
+              name: "Peter Thiel",
+              description: "Co-founder of PayPal and Palantir",
+              properties: {},
+            },
+            {
+              type: "Person",
+              name: "Alex Karp",
+              description: "CEO of Palantir, PhD in neoclassical social theory",
+              properties: {},
+            },
+            {
+              type: "Person",
+              name: "Nathan Gettings",
+              description: "PayPal engineer, Palantir founding team",
+              properties: {},
+            },
+            {
+              type: "Person",
+              name: "Joe Lonsdale",
+              description: "Stanford student, Palantir founding team",
+              properties: {},
+            },
+            {
+              type: "Person",
+              name: "Stephen Cohen",
+              description: "Stanford student, Palantir founding team",
+              properties: {},
             },
             {
               type: "Product",
@@ -280,10 +367,28 @@ Financially, this divergence is dramatic. Palantir exhibits the characteristics 
               properties: {},
             },
             {
-              type: "Event",
-              name: "9/11",
-              description: "National security imperative",
+              type: "Product",
+              name: "UNIVAC I",
+              description: "Early commercial computer",
               properties: {},
+            },
+            {
+              type: "Event",
+              name: "September 11, 2001",
+              description: "Terrorist attacks that inspired Palantir's founding",
+              properties: {},
+            },
+            {
+              type: "Place",
+              name: "Denver",
+              description: "Palantir headquarters location",
+              properties: { state: "CO" },
+            },
+            {
+              type: "Place",
+              name: "Dublin",
+              description: "Accenture headquarters location",
+              properties: { country: "Ireland" },
             },
           ],
           relationships: [
@@ -306,10 +411,58 @@ Financially, this divergence is dramatic. Palantir exhibits the characteristics 
               properties: {},
             },
             {
+              type: "creator",
+              source: "Peter Thiel",
+              target: "Palantir Technologies",
+              properties: { role: "co-founder" },
+            },
+            {
+              type: "worksFor",
+              source: "Alex Karp",
+              target: "Palantir Technologies",
+              properties: { position: "CEO" },
+            },
+            {
+              type: "worksFor",
+              source: "Nathan Gettings",
+              target: "Palantir Technologies",
+              properties: { role: "founding engineer" },
+            },
+            {
+              type: "worksFor",
+              source: "Joe Lonsdale",
+              target: "Palantir Technologies",
+              properties: { role: "co-founder" },
+            },
+            {
+              type: "worksFor",
+              source: "Stephen Cohen",
+              target: "Palantir Technologies",
+              properties: { role: "co-founder" },
+            },
+            {
               type: "relatedTo",
               source: "Palantir Technologies",
               target: "Accenture",
-              properties: { context: "comparative analysis" },
+              properties: { context: "co-opetition, comparative analysis" },
+            },
+            {
+              type: "location",
+              source: "Palantir Technologies",
+              target: "Denver",
+              properties: { relationType: "headquarters" },
+            },
+            {
+              type: "location",
+              source: "Accenture",
+              target: "Dublin",
+              properties: { relationType: "headquarters" },
+            },
+            {
+              type: "associatedWith",
+              source: "In-Q-Tel",
+              target: "Central Intelligence Agency",
+              properties: { relationship: "venture capital arm" },
             },
           ],
         });
@@ -325,33 +478,71 @@ Financially, this divergence is dramatic. Palantir exhibits the characteristics 
       expect(result.entities.length).toBeGreaterThan(0);
       expect(result.relationships.length).toBeGreaterThan(0);
 
+      // Verify comprehensive entity extraction from full PDF
+      expect(result.entities.length).toBe(20); // Full set of entities
+      expect(result.relationships.length).toBe(12); // Full set of relationships
+
       // Verify key organizations were extracted
       const organizations = result.entities.filter((e) => e.type === "Organization");
-      expect(organizations).toHaveLength(2);
+      expect(organizations.length).toBeGreaterThanOrEqual(7); // Multiple organizations
       
       const palantir = organizations.find((e) => e.name === "Palantir Technologies");
       expect(palantir).toBeDefined();
       expect(palantir?.description).toContain("product-centric");
+      expect(palantir?.properties).toHaveProperty("founded", 2003);
+      expect(palantir?.properties).toHaveProperty("headquarters", "Denver, CO");
 
       const accenture = organizations.find((e) => e.name === "Accenture");
       expect(accenture).toBeDefined();
       expect(accenture?.description).toContain("service-driven");
+      expect(accenture?.properties).toHaveProperty("founded", 1989);
+      expect(accenture?.properties).toHaveProperty("employees2024", 774000);
+
+      // Verify people entities (founding team)
+      const people = result.entities.filter((e) => e.type === "Person");
+      expect(people.length).toBe(5);
+      expect(people.map((p) => p.name)).toContain("Peter Thiel");
+      expect(people.map((p) => p.name)).toContain("Alex Karp");
+      expect(people.map((p) => p.name)).toContain("Nathan Gettings");
 
       // Verify products were extracted
       const products = result.entities.filter((e) => e.type === "Product");
-      expect(products).toHaveLength(3);
+      expect(products.length).toBe(4); // Gotham, Foundry, Apollo, UNIVAC I
       expect(products.map((p) => p.name)).toContain("Gotham");
       expect(products.map((p) => p.name)).toContain("Foundry");
       expect(products.map((p) => p.name)).toContain("Apollo");
+      expect(products.map((p) => p.name)).toContain("UNIVAC I");
+
+      // Verify places were extracted
+      const places = result.entities.filter((e) => e.type === "Place");
+      expect(places.length).toBe(2);
+      expect(places.map((p) => p.name)).toContain("Denver");
+      expect(places.map((p) => p.name)).toContain("Dublin");
+
+      // Verify event was extracted
+      const events = result.entities.filter((e) => e.type === "Event");
+      expect(events.length).toBe(1);
+      expect(events[0]?.name).toBe("September 11, 2001");
 
       // Verify relationships
       const ownsRelationships = result.relationships.filter((r) => r.type === "owns");
-      expect(ownsRelationships).toHaveLength(3);
+      expect(ownsRelationships.length).toBe(3);
+
+      const worksForRelationships = result.relationships.filter((r) => r.type === "worksFor");
+      expect(worksForRelationships.length).toBe(4); // CEO + 3 co-founders
+
+      const locationRelationships = result.relationships.filter((r) => r.type === "location");
+      expect(locationRelationships.length).toBe(2); // Palantir->Denver, Accenture->Dublin
+
+      const creatorRelationship = result.relationships.find((r) => r.type === "creator");
+      expect(creatorRelationship).toBeDefined();
+      expect(creatorRelationship?.properties).toHaveProperty("role", "co-founder");
 
       const comparativeRelationship = result.relationships.find(
         (r) => r.type === "relatedTo"
       );
       expect(comparativeRelationship).toBeDefined();
+      expect(comparativeRelationship?.properties).toHaveProperty("context");
     });
   });
 
