@@ -225,6 +225,134 @@ describe("entity-extractor", () => {
       expect(result.entities[0]?.sourceSessionFile).toBe("session-123.jsonl");
       expect(result.entities[0]?.sourceChunkId).toBe("chunk-456");
     });
+
+    it("should extract entities from real-world document (Palantir vs Accenture)", async () => {
+      const documentText = `A Tale of Two Titans: A Comparative Analysis of Palantir Technologies and Accenture
+I. Executive Summary
+This report provides an exhaustive comparative analysis of Palantir Technologies and Accenture plc, two firms operating at the nexus of data, technology, and enterprise transformation. While both entities engage with the world's largest government and commercial organizations, their foundational principles, business models, and strategic imperatives are fundamentally divergent. The core thesis of this analysis is that Palantir and Accenture represent two distinct paradigms for value creation in the digital age. Palantir is a mission-driven, product-centric technology company that builds vertically integrated software platforms, deployed via a high-touch, engineering-led service model. Accenture is a people-centric, service-driven professional services behemoth that functions as a technology-agnostic systems integrator, leveraging its immense human capital and a vast ecosystem of partners to deliver large-scale business transformation.
+Their origins dictate their strategies: Palantir was born from the national security imperatives of a post-9/11 world, creating a culture focused on solving intractable problems with elite engineering talent. Accenture evolved from the corporate consulting arm of an accounting firm, building a culture centered on process, scale, and client relationship management. This translates into starkly different business models. Palantir's "Acquire, Expand, Scale" model focuses on embedding its proprietary platforms—Gotham, Foundry, and Apollo—as the indispensable operating system for a select group of high-value clients. Accenture's model leverages its nearly 800,000 employees across five service lines to provide end-to-end solutions, from strategy to operations, for thousands of clients globally.
+Financially, this divergence is dramatic. Palantir exhibits the characteristics of a...`;
+
+      const config: EntityExtractionConfig = {
+        enabled: true,
+      };
+
+      // Mock LLM that extracts entities from the Palantir vs Accenture document
+      const mockLLM = async (_prompt: string) => {
+        return JSON.stringify({
+          entities: [
+            {
+              type: "Organization",
+              name: "Palantir Technologies",
+              description: "Mission-driven, product-centric technology company",
+              properties: {
+                businessModel: "Acquire, Expand, Scale",
+                platforms: ["Gotham", "Foundry", "Apollo"],
+                origin: "post-9/11 national security",
+              },
+            },
+            {
+              type: "Organization",
+              name: "Accenture",
+              description: "People-centric, service-driven professional services company",
+              properties: {
+                employees: 800000,
+                serviceLines: 5,
+                origin: "corporate consulting arm of accounting firm",
+              },
+            },
+            {
+              type: "Product",
+              name: "Gotham",
+              description: "Palantir platform",
+              properties: {},
+            },
+            {
+              type: "Product",
+              name: "Foundry",
+              description: "Palantir platform",
+              properties: {},
+            },
+            {
+              type: "Product",
+              name: "Apollo",
+              description: "Palantir platform",
+              properties: {},
+            },
+            {
+              type: "Event",
+              name: "9/11",
+              description: "National security imperative",
+              properties: {},
+            },
+          ],
+          relationships: [
+            {
+              type: "owns",
+              source: "Palantir Technologies",
+              target: "Gotham",
+              properties: {},
+            },
+            {
+              type: "owns",
+              source: "Palantir Technologies",
+              target: "Foundry",
+              properties: {},
+            },
+            {
+              type: "owns",
+              source: "Palantir Technologies",
+              target: "Apollo",
+              properties: {},
+            },
+            {
+              type: "relatedTo",
+              source: "Palantir Technologies",
+              target: "Accenture",
+              properties: { context: "comparative analysis" },
+            },
+          ],
+        });
+      };
+
+      const result = await extractEntitiesFromText(documentText, {
+        config,
+        llmExtract: mockLLM,
+      });
+
+      // Verify extraction succeeded
+      expect(result.error).toBeUndefined();
+      expect(result.entities.length).toBeGreaterThan(0);
+      expect(result.relationships.length).toBeGreaterThan(0);
+
+      // Verify key organizations were extracted
+      const organizations = result.entities.filter((e) => e.type === "Organization");
+      expect(organizations).toHaveLength(2);
+      
+      const palantir = organizations.find((e) => e.name === "Palantir Technologies");
+      expect(palantir).toBeDefined();
+      expect(palantir?.description).toContain("product-centric");
+
+      const accenture = organizations.find((e) => e.name === "Accenture");
+      expect(accenture).toBeDefined();
+      expect(accenture?.description).toContain("service-driven");
+
+      // Verify products were extracted
+      const products = result.entities.filter((e) => e.type === "Product");
+      expect(products).toHaveLength(3);
+      expect(products.map((p) => p.name)).toContain("Gotham");
+      expect(products.map((p) => p.name)).toContain("Foundry");
+      expect(products.map((p) => p.name)).toContain("Apollo");
+
+      // Verify relationships
+      const ownsRelationships = result.relationships.filter((r) => r.type === "owns");
+      expect(ownsRelationships).toHaveLength(3);
+
+      const comparativeRelationship = result.relationships.find(
+        (r) => r.type === "relatedTo"
+      );
+      expect(comparativeRelationship).toBeDefined();
+    });
   });
 
   describe("mergeEntityGraphs", () => {
