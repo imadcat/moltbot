@@ -11,7 +11,11 @@ import { resolveSessionTranscriptsDirForAgent } from "../config/sessions/paths.j
 import { setVerbose } from "../globals.js";
 import { withProgress, withProgressTotals } from "./progress.js";
 import { formatErrorMessage, withManager } from "./cli-utils.js";
-import { getMemorySearchManager, type MemorySearchManagerResult } from "../memory/index.js";
+import {
+  getMemorySearchManager,
+  type MemorySearchManagerResult,
+  EntityGraphManager,
+} from "../memory/index.js";
 import { listMemoryFiles } from "../memory/internal.js";
 import { defaultRuntime } from "../runtime.js";
 import { formatDocsLink } from "../terminal/links.js";
@@ -619,4 +623,90 @@ export function registerMemoryCli(program: Command) {
         });
       },
     );
+
+  // Entities subcommand
+  const entities = memory
+    .command("entities")
+    .description("Entity graph management");
+
+  entities
+    .command("status")
+    .description("Show entity graph statistics")
+    .option("--agent <id>", "Agent id (default: default agent)")
+    .option("--json", "Print JSON")
+    .option("--verbose", "Verbose logging", false)
+    .action(async (opts: MemoryCommandOptions) => {
+      await runMemoryEntitiesStatus(opts);
+    });
+}
+
+/**
+ * Display entity graph statistics
+ */
+export async function runMemoryEntitiesStatus(opts: MemoryCommandOptions) {
+  setVerbose(Boolean(opts.verbose));
+  const cfg = loadConfig();
+  const agentId = resolveAgent(cfg, opts.agent);
+
+  return withManager(cfg, agentId, async ({ manager, indexFilePath }) => {
+    const db = (manager as unknown as { db: unknown }).db;
+    if (!db || typeof db !== "object") {
+      defaultRuntime.error("Entity storage not available");
+      return;
+    }
+
+    const entityManager = new EntityGraphManager(db as never);
+    const stats = entityManager.getStats();
+
+    if (opts.json) {
+      defaultRuntime.log(JSON.stringify(stats, null, 2));
+      return;
+    }
+
+    const rich = isRich();
+    const lines: string[] = [];
+
+    lines.push(colorize(rich, theme.title, "Entity Graph Statistics"));
+    lines.push("");
+
+    lines.push(
+      `${colorize(rich, theme.label, "Total Entities:")} ${colorize(
+        rich,
+        theme.success,
+        String(stats.totalEntities),
+      )}`,
+    );
+    lines.push(
+      `${colorize(rich, theme.label, "Total Relationships:")} ${colorize(
+        rich,
+        theme.success,
+        String(stats.totalRelationships),
+      )}`,
+    );
+    lines.push("");
+
+    if (Object.keys(stats.entityTypeBreakdown).length > 0) {
+      lines.push(colorize(rich, theme.heading, "Entity Types:"));
+      for (const [type, count] of Object.entries(stats.entityTypeBreakdown)) {
+        lines.push(
+          `  ${colorize(rich, theme.accent, type)}: ${colorize(rich, theme.muted, String(count))}`,
+        );
+      }
+      lines.push("");
+    }
+
+    if (Object.keys(stats.relationshipTypeBreakdown).length > 0) {
+      lines.push(colorize(rich, theme.heading, "Relationship Types:"));
+      for (const [type, count] of Object.entries(stats.relationshipTypeBreakdown)) {
+        lines.push(
+          `  ${colorize(rich, theme.accent, type)}: ${colorize(rich, theme.muted, String(count))}`,
+        );
+      }
+      lines.push("");
+    }
+
+    lines.push(colorize(rich, theme.muted, `Index: ${shortenHomePath(indexFilePath)}`));
+
+    defaultRuntime.log(lines.join("\n").trim());
+  });
 }
